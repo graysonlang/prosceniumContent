@@ -1,0 +1,30 @@
+<languageVersion: 1.0;>
+material kernel TestCustomMaterial
+<
+	namespace:	"Pixel Bender 3D";
+	vendor:		"Adobe";
+	version:	1;
+>
+{
+	parameter    float4 color				< id:"color"; >;
+
+	input vertex float4 vertexPosition 		< id:"position"; >;
+
+	interpolated float4 voutPosition;
+	
+	output float4 result;
+	
+	void evaluateVertex()
+	{
+		voutPosition = vertexPosition; 
+	}
+	
+	void evaluateFragment()
+	{
+		float4 eps = float4( 0.704265276985e-5, 0.57849021984326e-5, 0.587429067098276098e-5, 0);
+		float4 pattern = fract( voutPosition + eps );
+		pattern.w = 0.;
+		
+		result = color + pattern;
+	}
+}

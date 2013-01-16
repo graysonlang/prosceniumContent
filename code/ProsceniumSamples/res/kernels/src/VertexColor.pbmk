@@ -1,0 +1,25 @@
+<languageVersion: 1.0;>
+material kernel simpleImageSampling
+<
+	namespace:	"Pixel Bender 3D";
+	vendor:		"Adobe";
+	version:	1;
+>
+{
+	input vertex float4 vertexPosition < id:"position"; >;
+	input vertex float4 vertexColor < id:"color"; >;
+
+	interpolated float4 color;
+	
+	output float4 result;
+	
+	void evaluateVertex()
+	{
+		color = vertexColor;
+	}
+	
+	void evaluateFragment()
+	{
+		result = color;
+	}
+}

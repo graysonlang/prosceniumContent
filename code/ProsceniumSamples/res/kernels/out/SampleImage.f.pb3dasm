@@ -1,0 +1,75 @@
+module_fragment_program simpleImageSampling
+
+    metadata
+        namespace const(string, "Pixel Bender 3D")
+        vendor const(string, "Adobe")
+        version const(int, 1)
+    end_metadata
+    
+    transformations
+        SCF INTOSSA OPT(DCE* {APR DCE*}*)
+    end_transformations
+    
+    globals
+        input image image-4 inputImage
+        global parameter float-4 lightDiffuse
+            metadata
+                id const(string, "lightDiffuse")
+            end_metadata
+        global parameter float-4 lightSpecular
+            metadata
+                id const(string, "lightSpecular")
+            end_metadata
+        global parameter float shininess
+            metadata
+                id const(string, "shininess")
+            end_metadata
+        input vertex float-4 vertexNormal
+            metadata
+                id const(string, "normal")
+            end_metadata
+        input vertex float-4 vertexPosition
+            metadata
+                id const(string, "position")
+            end_metadata
+        input vertex float-4 vertexTexcoord
+            metadata
+                id const(string, "texcoord")
+            end_metadata
+        interpolated float-4 normal
+            metadata
+                id const(string, "_1_normal")
+            end_metadata
+        interpolated float-4 texcoord
+            metadata
+                id const(string, "_0_texcoord")
+            end_metadata
+        output fragment float-4 result
+    end_globals
+    
+    functions
+        external_function void evaluateFragment()
+            body
+                basic_block entry%A !! outlets(basic%A)
+                    color-0 = allocNonSSA type(float-4) : float-4
+                    jump block(basic%A) : void
+                end_basic_block
+                basic_block basic%A !! inlets(entry%A) outlets(exit%A)
+                    texcoordElem%A-0 = extractVE texcoord, const(int, 0) : float
+                    texcoordElem%B-0 = extractVE texcoord, const(int, 1) : float
+                    _anonVec%A-0 = makeFloatVector texcoordElem%A-0, texcoordElem%B-0 : float-2
+                    _LD_color-1 = sample inputImage, _anonVec%A-0, const(_sample_option, nearest mipdisable clamp 2D ) : float-4
+                    _mulResult%A-0 = mul texcoord, const(float-4, (0.25, 0.5, 0.75, 1)) : float-4
+                    _LD_result-1 = add _LD_color-1, _mulResult%A-0 : float-4
+                    jump block(exit%A) : void
+                end_basic_block
+                basic_block exit%A !! inlets(basic%A)
+                    moveToNonSSA _LD_result-1, result : void
+                    ret : void
+                end_basic_block
+            end_body
+        end_external_function
+    end_functions
+    
+end_module_fragment_program
+

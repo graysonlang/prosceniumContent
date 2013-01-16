@@ -1,0 +1,149 @@
+<languageVersion : 1.0;>
+
+#define kUseTwoMaps 1
+
+// This kernel solves the constant velocity wave equation using finite differencing
+// The previous height is stored in the green channel, and the current height in the red channel
+kernel WaveEquation
+<
+	namespace:		"Pixel Bender";
+    vendor:			"Adobe";
+    version:		1;
+    description:	"A finite difference wave equation";
+>
+{
+   parameter float speed
+   <
+        defaultValue:1.0;
+        minValue:0.0;
+        maxValue:10.0;
+   >;
+   
+/*
+   parameter float time
+   <
+        defaultValue:0.0;
+        minValue:0.0;
+        maxValue:100.0;
+   >;
+*/
+
+   parameter float aspectRatio
+   <
+        defaultValue:1.0;
+        minValue:0.0;
+        maxValue:100.0;
+   >;
+   
+   parameter float aspectRatioInverse
+   <
+        defaultValue:1.0;
+        minValue:0.0;
+        maxValue:100.0;
+   >;
+   
+   parameter float2 center
+    <
+        minValue:		float2( 0.0, 0.0 );
+		maxValue:		float2( 8192.0, 8192.0 );
+		defaultValue:	float2( 256.0, 256.0 );
+    >;
+    
+    parameter float amplitude
+    <
+        defaultValue:0.5;
+        maxValue:0.5;
+        minValue:-0.5;
+    >;
+    
+   parameter float radiusSquared
+    <
+        defaultValue:16.0;
+        maxValue:1000000.0;
+        minValue:1.0;
+    >;
+    
+    input image4 src;
+#ifdef kUseTwoMaps
+    input image4 prev;
+#endif
+    output pixel4 dst;
+
+	void evaluatePixel()
+	{
+        float velocitySquared = 0.25 * speed * speed; // Include the factor of 0.25, velocity is in pixels per timestep
+        float4 value00 = sampleNearest( src, outCoord() );
+        
+        float channelScale = 255.0;
+
+        if (value00.g > 0.0)
+        {
+            float4 valuePX = sampleNearest( src, outCoord() + float2(1.0, 0.0) );
+            float4 valueNX = sampleNearest( src, outCoord() - float2(1.0, 0.0) );
+            float4 valuePY = sampleNearest( src, outCoord() + float2(0.0, 1.0) );
+            float4 valueNY = sampleNearest( src, outCoord() - float2(0.0, 1.0) );
+            float4 neighbors;
+            
+            float splash = amplitude;
+  
+#ifdef kUseTwoMaps
+            // Reconstruct the high-precision depths from the two low precision depths
+            float offset = 0.5;
+            splash *= channelScale;
+            float4 valuePrevious = sampleNearest(prev, outCoord() );
+            valuePX.r += channelScale * (valuePX.b - offset);
+            valueNX.r += channelScale * (valueNX.b - offset);
+            valuePY.r += channelScale * (valuePY.b - offset);
+            valueNY.r += channelScale * (valueNY.b - offset);
+            value00.r += channelScale * (value00.b - offset);
+            valuePrevious.r += channelScale * (valuePrevious.b - offset);
+#else
+            float4 valuePrevious = float4(value00.b, 0.0, 0.0, 0.0);
+            float offset = 0.5;
+            valuePX.r -= offset;
+            valueNX.r -= offset;
+            valuePY.r -= offset;
+            valueNY.r -= offset;
+            value00.r -= offset;
+            valuePrevious.r -= offset;
+#endif
+            neighbors.r = valuePX.r * (valuePX.g) + (1.0 - valuePX.g) * valueNX.r; // Enforce the boundary conditions as mirror reflections
+            neighbors.g = valuePY.r * (valuePY.g) + (1.0 - valuePY.g) * valueNY.r; // Enforce the boundary conditions as mirror reflections
+            neighbors.b = valueNX.r * (valueNX.g) + (1.0 - valueNX.g) * valuePX.r; // Enforce the boundary conditions as mirror reflections
+            neighbors.w = valueNY.r * (valueNY.g) + (1.0 - valueNY.g) * valuePY.r; // Enforce the boundary conditions as mirror reflections
+            
+            float gauss = velocitySquared * ((neighbors.r + neighbors.b - 2.0 * value00.r ) * aspectRatio 
+                                           + (neighbors.g + neighbors.w - 2.0 * value00.r)  * aspectRatioInverse); // With boundary conditions
+                                           
+            float heightOut = (2.0 * value00.r - valuePrevious.r + gauss) * 0.99 * value00.g;
+            
+            // Now add a disk of disturbance
+            float2 diff = outCoord() - center;
+            
+            if (diff.x * diff.x * aspectRatioInverse + diff.y * diff.y * aspectRatio < radiusSquared)
+            {
+                heightOut += splash * value00.g;
+            }
+            
+             
+ #ifdef kUseTwoMaps
+            heightOut = clamp(heightOut, -127.0, 127.0); // Clamp to a symmetric range before scaling
+            dst.r = fract(heightOut);
+            dst.b = (floor(heightOut) / 254.99) + 0.5; // Use slightly less that 255 to avoid rounding errors
+ //           dst.b = (heightOut / channelScale) + 0.5;
+            dst.g = value00.g;  // Pass the mask on to the next iteration
+            dst.w = 1.0;
+#else
+            heightOut = clamp(heightOut + offset, 0.0, 1.0);
+            dst.r = heightOut;
+            dst.b = value00.r + offset; // The current value which will become the previous value
+            dst.g = value00.g;  // Pass the mask on to the next iteration
+            dst.w = 1.0;
+#endif
+        }
+        else
+        {
+            dst = value00;
+        }
+	}
+}

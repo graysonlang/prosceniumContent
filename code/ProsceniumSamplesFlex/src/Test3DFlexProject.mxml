@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+// ================================================================================
+//
+//	ADOBE SYSTEMS INCORPORATED
+//	Copyright 2010 Adobe Systems Incorporated
+//	All Rights Reserved.
+//
+//	NOTICE: Adobe permits you to use, modify, and distribute this file
+//	in accordance with the terms of the license agreement accompanying it.
+//
+// ================================================================================
+-->
+<s:Application
+	xmlns:fx="http://ns.adobe.com/mxml/2009" 
+	xmlns:s="library://ns.adobe.com/flex/spark"
+	xmlns:mx="library://ns.adobe.com/flex/mx"
+
+	width="100%" height="100%" frameRate="120" backgroundColor="0x333333"
+	
+	skinClass="TransparentApplicationSkin"
+	applicationComplete="applicationCompleteHandler( event )"
+>
+	<fx:Script>
+		<![CDATA[
+			// ======================================================================
+			//	Imports
+			// ----------------------------------------------------------------------
+			import com.adobe.scenegraph.*;
+			
+			import flash.display.*;
+			import flash.events.*;
+			
+			import spark.core.*;
+				
+			// ======================================================================
+			//	Properties
+			// ----------------------------------------------------------------------
+			protected var _basicDemo:BasicDemo;
+			protected var _sphere:SceneMesh;
+			
+			// ======================================================================
+			//	Methods
+			// ----------------------------------------------------------------------
+			protected function applicationCompleteHandler( event:Event ):void
+			{
+				_basicDemo = new BasicDemo();
+				_basicDemo.addEventListener( Event.COMPLETE, completeEventHandler );
+				stage.addEventListener( Event.RESIZE, resizeEventHandler );
+				
+				_basicDemo.mouseParent = this.viewport;
+				_basicDemo.viewport = this.viewport;
+				stage.addChildAt( _basicDemo, 0 );
+			}
+			
+			protected function completeEventHandler( event:Event ):void
+			{
+				trace( _basicDemo.scene );
+				_basicDemo.addEventListener( Event.ENTER_FRAME, enterFrameEventHandler );
+			}
+			
+			protected function enterFrameEventHandler( event:Event ):void
+			{
+			}
+			
+			protected function resizeEventHandler( event:Event = undefined ):void
+			{
+				if ( _basicDemo && stage )
+					_basicDemo.resize( stage.stageWidth, stage.stageHeight ); 
+			}
+
+			protected function clickHandler( event:MouseEvent ):void
+			{
+				trace( "Click!" );
+			}
+		]]>
+	</fx:Script>
+	
+	<mx:HDividedBox width="100%" height="100%">
+		<s:Group id="viewport" x="0" y="0" width="100%" height="100%" resize="resizeEventHandler( event )">
+			<s:Button x="10" y="10" label="Click Me" enabled="true" click="clickHandler(event)"/>
+		</s:Group>
+		<s:Group width="100" height="100%">
+			<s:Rect width="100%" height="100%"><s:fill><s:SolidColor color="0x666666"/></s:fill></s:Rect>
+			<s:Button x="10" y="10" label="Click Me" enabled="true" click="clickHandler(event)"/>
+		</s:Group>
+	</mx:HDividedBox>
+</s:Application>

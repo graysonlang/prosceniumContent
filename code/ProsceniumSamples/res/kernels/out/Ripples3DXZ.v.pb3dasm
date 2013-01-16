@@ -1,0 +1,76 @@
+module_material_vertex_program simpleImageSampling
+
+    metadata
+        namespace const(string, "Pixel Bender 3D")
+        vendor const(string, "Adobe")
+        version const(int, 1)
+    end_metadata
+    
+    transformations
+        SCF INTOSSA OPT(DCE* {APR DCE*}*)
+    end_transformations
+    
+    globals
+        global parameter float-4 cameraPosition
+            metadata
+                id const(string, "cameraPosition")
+            end_metadata
+        input image image-4 inputEnvImage
+        global parameter float-4 offsetUV
+            metadata
+                id const(string, "offsetUV")
+            end_metadata
+        global parameter float time
+            metadata
+                id const(string, "time2")
+            end_metadata
+        input vertex float-4 vertexNormal
+            metadata
+                id const(string, "normal")
+            end_metadata
+        input vertex float-4 vertexPosition
+            metadata
+                id const(string, "position")
+            end_metadata
+        input vertex float-4 vertexTexcoord
+            metadata
+                id const(string, "texcoord")
+            end_metadata
+        interpolated float-4 normal
+            metadata
+                id const(string, "_1_normal")
+            end_metadata
+        interpolated float-4 texcoord
+            metadata
+                id const(string, "_0_texcoord")
+            end_metadata
+        interpolated float-4 worldPosition
+            metadata
+                id const(string, "_2_worldPosition")
+            end_metadata
+    end_globals
+    
+    functions
+        external_function void evaluateVertex()
+            body
+                basic_block entry%A !! outlets(basic%A)
+                    jump block(basic%A) : void
+                end_basic_block
+                basic_block basic%A !! inlets(entry%A) outlets(exit%A)
+                    _LD_texcoord-1 = assign vertexTexcoord : float-4
+                    _LD_normal-1 = assign vertexNormal : float-4
+                    _LD_worldPosition-1 = assign vertexPosition : float-4
+                    jump block(exit%A) : void
+                end_basic_block
+                basic_block exit%A !! inlets(basic%A)
+                    moveToNonSSA _LD_normal-1, normal : void
+                    moveToNonSSA _LD_texcoord-1, texcoord : void
+                    moveToNonSSA _LD_worldPosition-1, worldPosition : void
+                    ret : void
+                end_basic_block
+            end_body
+        end_external_function
+    end_functions
+    
+end_module_material_vertex_program
+

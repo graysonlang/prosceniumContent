@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+// ================================================================================
+//
+//	ADOBE SYSTEMS INCORPORATED
+//	Copyright 2011 Adobe Systems Incorporated
+//	All Rights Reserved.
+//
+//	NOTICE: Adobe permits you to use, modify, and distribute this file
+//	in accordance with the terms of the license agreement accompanying it.
+//
+// ================================================================================
+-->
+<s:Application
+	xmlns:fx="http://ns.adobe.com/mxml/2009" 
+	xmlns:s="library://ns.adobe.com/flex/spark"
+	xmlns:mx="library://ns.adobe.com/flex/mx"
+	
+	width="100%" height="100%" frameRate="120" backgroundColor="0x333333"
+	
+	skinClass="TransparentApplicationSkin"
+	applicationComplete="applicationCompleteHandler( event )"
+	>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.adobe.scenegraph.*;
+			
+			import flash.display.*;
+			import flash.events.*;
+			
+			import mx.controls.*;
+			import mx.controls.listClasses.ListBase;
+			import mx.events.*;
+			
+			import spark.core.*;
+			import spark.events.*;
+			
+			// ======================================================================
+			//	Properties
+			// ----------------------------------------------------------------------
+			protected var _viewer:Viewer3D;
+			protected var _sphere:SceneMesh;
+			
+			// ======================================================================
+			//	Methods
+			// ----------------------------------------------------------------------
+			protected function applicationCompleteHandler( event:Event ):void
+			{
+				_viewer = new Viewer3D( parameters );
+				_viewer.addEventListener( Event.COMPLETE, completeEventHandler );
+				stage.addEventListener( Event.RESIZE, resizeEventHandler );
+				
+				_viewer.mouseParent = this.viewport;
+				_viewer.viewport = this.viewport;
+				stage.addChildAt( _viewer, 0 );
+				
+				var viewList:ArrayList = new ArrayList( [ "Back", "Bottom", "Front", "Isometric", "Left", "Right", "Top" ] );
+				
+				views.dataProvider = viewList 
+				views.selectedItem = "Front";
+				views.typicalItem = views.selectedItem;
+				
+				trace( views.selectedItem );
+			}
+			
+			protected function completeEventHandler( event:Event ):void
+			{
+				//				_viewer.addEventListener( Event.ENTER_FRAME, enterFrameEventHandler );
+			}
+			
+			protected function enterFrameEventHandler( event:Event ):void
+			{
+				
+			}
+			
+			protected function resizeEventHandler( event:Event = undefined ):void
+			{
+				if ( _viewer && stage )
+					_viewer.resize( stage.stageWidth, stage.stageHeight ); 
+			}
+			
+			protected function buttonHandler( event:Event ):void
+			{
+				var button:spark.components.Button = event.target as spark.components.Button;
+				
+				switch( button.id )
+				{
+					case "home":
+						_viewer.resetCamera();
+						views.selectedItem = "Front";
+						break;
+				}
+			}
+			
+			protected function toolHandler( event:MouseEvent ):void
+			{
+				var buttonBar:spark.components.ButtonBar = event.currentTarget as spark.components.ButtonBar;
+				var button:Object = buttonBar.selectedItem;
+				
+				var mode:String = button.name;
+				
+				switch( mode )
+				{
+					case "orbit":
+					case "pan":
+					case "walk":
+						_viewer.navMode = mode;
+						break;
+				}
+			}
+			
+			protected function cb_changeHandler( event:IndexChangeEvent ):void
+			{
+				views.typicalItem = views.selectedItem;
+				
+				var view:String = views.selectedItem;
+				_viewer.setView( view ); 
+			}
+		]]>
+	</fx:Script>
+	
+	<fx:Style>
+		@namespace mx "library://ns.adobe.com/flex/mx";
+		@namespace s "library://ns.adobe.com/flex/spark";
+		
+		s|DropDownList { skinClass: ClassReference( "VariableHeightDropDownListSkin" ); }
+	</fx:Style>
+	
+	<s:Group id="viewport" x="0" y="0" width="100%" height="100%" resize="resizeEventHandler( event )">
+		<!--
+		<s:Rect width="100%" height="24"><s:fill><s:SolidColor color="0x666666"/></s:fill></s:Rect>
+		-->
+		<s:HGroup width="100%" height="100%" x="1" y="1" gap="1">
+			<s:ButtonBar width="98" height="22" id="btnBar" requireSelection="true" click="toolHandler( event )">
+				<s:dataProvider>
+					<s:ArrayList>
+						<fx:Object name="orbit" label="Orbit" icon="@Embed('../res/images/P_3DOrbit_22x18_N.png')" />
+						<fx:Object name="walk" label="Walk" icon="@Embed('../res/images/P_3DSlide_22x18_N.png')" />
+						<fx:Object name="pan" label="Pan" icon="@Embed(source='../res/images/P_3DPan_22x18_N.png')" />
+					</s:ArrayList>
+				</s:dataProvider>
+			</s:ButtonBar>
+			
+			<s:Spacer width="2"/>
+			
+			<s:Button id="home" width="32" height="22" enabled="true" icon="@Embed(source='../res/images/P_3DHome_22x18_N.png')" buttonDown="buttonHandler( event )"/>
+			
+			<s:DropDownList
+				id="views"
+				height="22"
+				prompt="Camera Views"
+				labelField="@label"
+				requireSelection="true"
+				selectedIndex="2"
+				change="cb_changeHandler( event );"
+				creationComplete="views.typicalItem = views.selectedItem;"
+				>
+			</s:DropDownList>
+		</s:HGroup>
+	</s:Group>
+</s:Application>

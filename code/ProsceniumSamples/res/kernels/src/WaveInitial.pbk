@@ -1,0 +1,30 @@
+<languageVersion : 1.0;>
+#define kUseTwoInputs 1
+// This kernel solves the constant velocity wave equation using finite differencing
+// The previous height is stored in the green channel, and the current height in the red channel
+kernel WaveEquation
+<
+	namespace:		"Pixel Bender";
+    vendor:			"Adobe";
+    version:		1;
+    description:	"A finite difference wave equation";
+>
+{
+    input image4 src;
+    output pixel4 dst;
+
+	void evaluatePixel()
+	{
+        float4 color = sampleNearest(src, outCoord());
+#ifdef kUseTwoInputs
+        dst.r = 0.0;
+        dst.g = color.g;
+        dst.b = 0.5;
+#else
+        dst.r = 0.5;       
+        dst.g = color.g;
+        dst.b = 0.5;
+#endif
+        dst.w = 1.0;
+ 	}
+}

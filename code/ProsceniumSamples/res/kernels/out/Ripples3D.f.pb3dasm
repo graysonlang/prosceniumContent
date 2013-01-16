@@ -1,0 +1,120 @@
+module_fragment_program simpleImageSampling
+
+    metadata
+        namespace const(string, "Pixel Bender 3D")
+        vendor const(string, "Adobe")
+        version const(int, 1)
+    end_metadata
+    
+    transformations
+        SCF INTOSSA OPT(DCE* {APR DCE*}*)
+    end_transformations
+    
+    globals
+        global parameter float-4 cameraPosition
+            metadata
+                id const(string, "cameraPosition")
+            end_metadata
+        input image image-4 inputEnvImage
+        global parameter float time
+            metadata
+                id const(string, "time")
+            end_metadata
+        input vertex float-4 vertexNormal
+            metadata
+                id const(string, "normal")
+            end_metadata
+        input vertex float-4 vertexPosition
+            metadata
+                id const(string, "position")
+            end_metadata
+        input vertex float-4 vertexTexcoord
+            metadata
+                id const(string, "texcoord")
+            end_metadata
+        interpolated float-4 normal
+            metadata
+                id const(string, "_1_normal")
+            end_metadata
+        interpolated float-4 texcoord
+            metadata
+                id const(string, "_0_texcoord")
+            end_metadata
+        interpolated float-4 worldPosition
+            metadata
+                id const(string, "_2_worldPosition")
+            end_metadata
+        output fragment float-4 result
+    end_globals
+    
+    functions
+        external_function void evaluateFragment()
+            body
+                basic_block entry%A !! outlets(basic%A)
+                    amplitude-0 = allocNonSSA type(float-4) : float-4
+                    wavenumber1-0 = allocNonSSA type(float-4) : float-4
+                    function-0 = allocNonSSA type(float) : float
+                    viewDirection-0 = allocNonSSA type(float-4) : float-4
+                    bumpNormal-0 = allocNonSSA type(float-4) : float-4
+                    dp-0 = allocNonSSA type(float) : float
+                    reflectedRay-0 = allocNonSSA type(float-4) : float-4
+                    offsetHalf-0 = allocNonSSA type(float-4) : float-4
+                    jump block(basic%A) : void
+                end_basic_block
+                basic_block basic%A !! inlets(entry%A) outlets(exit%A)
+                    _LD_amplitude-1 = assign const(float-4, (0.009375, 0.00625, 0.005, 0)) : float-4
+                    _LD_wavenumber1-1 = assign const(float-4, (115.199997, -25.6, 102.400002, -51.200001)) : float-4
+                    _LD_amplitudeElem%A-0 = extractVE _LD_amplitude-1, const(int, 0) : float
+                    _anonSwizzle%A-0 = swizzleRHS texcoord, const(int-2, (0, 1)) : float-2
+                    _anonSwizzle%B-0 = swizzleRHS _LD_wavenumber1-1, const(int-2, (0, 1)) : float-2
+                    _dotResult%A-0 = dot _anonSwizzle%A-0, _anonSwizzle%B-0 : float
+                    _subResult%A-0 = sub _dotResult%A-0, time : float
+                    _cosResult%A-0 = cos _subResult%A-0 : float
+                    _mulResult%A-0 = mul _LD_amplitudeElem%A-0, _cosResult%A-0 : float
+                    _LD_amplitudeElem%B-0 = extractVE _LD_amplitude-1, const(int, 1) : float
+                    _anonSwizzle%C-0 = swizzleRHS texcoord, const(int-2, (0, 1)) : float-2
+                    _anonSwizzle%D-0 = swizzleRHS _LD_wavenumber1-1, const(int-2, (2, 3)) : float-2
+                    _dotResult%B-0 = dot _anonSwizzle%C-0, _anonSwizzle%D-0 : float
+                    _subResult%B-0 = sub _dotResult%B-0, time : float
+                    _cosResult%B-0 = cos _subResult%B-0 : float
+                    _mulResult%B-0 = mul _LD_amplitudeElem%B-0, _cosResult%B-0 : float
+                    _LD_function-1 = add _mulResult%A-0, _mulResult%B-0 : float
+                    _LD_amplitudeElem%C-0 = extractVE _LD_amplitude-1, const(int, 2) : float
+                    _anonSwizzle%E-0 = swizzleRHS texcoord, const(int-2, (0, 1)) : float-2
+                    _anonSwizzle%F-0 = swizzleRHS _LD_wavenumber1-1, const(int-2, (2, 1)) : float-2
+                    _dotResult%C-0 = dot _anonSwizzle%E-0, _anonSwizzle%F-0 : float
+                    _subResult%C-0 = sub _dotResult%C-0, time : float
+                    _cosResult%C-0 = cos _subResult%C-0 : float
+                    _mulResult%C-0 = mul _LD_amplitudeElem%C-0, _cosResult%C-0 : float
+                    _LD_function-2 = add _LD_function-1, _mulResult%C-0 : float
+                    _LD_viewDirection-1 = sub worldPosition, cameraPosition : float-4
+                    _LD_viewDirection-2 = normalize _LD_viewDirection-1 : float-4
+                    _negResult%A-0 = neg _LD_function-2 : float
+                    _anonVec%A-0 = makeFloatVector _negResult%A-0, const(float, 0), const(float, 0), const(float, 0) : float-4
+                    _LD_bumpNormal-1 = add _anonVec%A-0, normal : float-4
+                    _dotResult%D-0 = dot _LD_viewDirection-2, _LD_bumpNormal-1 : float
+                    _LD_dp-1 = mul const(float, 4), _dotResult%D-0 : float
+                    _mulResult%E-0 = mul _LD_dp-1, _LD_bumpNormal-1 : float-4
+                    _LD_reflectedRay-1 = sub _LD_viewDirection-2, _mulResult%E-0 : float-4
+                    _LD_reflectedRayElem%A-0 = extractVE _LD_reflectedRay-1, const(int, 0) : float
+                    _mulResult%F-0 = mul _LD_reflectedRayElem%A-0, const(float, 0.5) : float
+                    _addResult%D-0 = add const(float, 0.5), _mulResult%F-0 : float
+                    _LD_reflectedRayElem%B-0 = extractVE _LD_reflectedRay-1, const(int, 1) : float
+                    _mulResult%G-0 = mul _LD_reflectedRayElem%B-0, const(float, 0.5) : float
+                    _subResult%F-0 = sub const(float, 0.5), _mulResult%G-0 : float
+                    _anonVec%B-0 = makeFloatVector _addResult%D-0, _subResult%F-0 : float-2
+                    _sampleResult%A-0 = sample inputEnvImage, _anonVec%B-0, const(_sample_option, linear mipdisable clamp 2D ) : float-4
+                    _LD_result-1 = mul _sampleResult%A-0, const(float, 0.8) : float-4
+                    _LD_result-2 = insertVE const(float, 1), _LD_result-1, const(int, 3) : float-4
+                    jump block(exit%A) : void
+                end_basic_block
+                basic_block exit%A !! inlets(basic%A)
+                    moveToNonSSA _LD_result-2, result : void
+                    ret : void
+                end_basic_block
+            end_body
+        end_external_function
+    end_functions
+    
+end_module_fragment_program
+

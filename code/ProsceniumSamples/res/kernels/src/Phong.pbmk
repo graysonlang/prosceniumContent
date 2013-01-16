@@ -1,0 +1,125 @@
+<languageVersion : 1.0;>
+material kernel phong
+<
+	namespace : "AIF Test";
+	vendor : "Adobe";
+	version : 1;
+>
+{
+	// Material properties
+	parameter float4 diffuse 
+	<
+		id: "diffuse";
+	>;
+	parameter float4 specular 
+	<
+		id: "specular";
+	>;
+	parameter float shininess
+	<
+		id: "shininess";
+	>;
+	
+	// Camera properties
+	parameter float4 cameraPosition
+	<
+		id: "cameraPosition";
+	>;
+	
+	input vertex float4 vertexPosition < id:"position"; >; 
+	input vertex float4 vertexTexcoord < id:"texcoord"; >;
+	input vertex float4 vertexNormal < id:"normal"; >;
+
+	interpolated float4 texcoord;
+	interpolated float4 normal;
+	interpolated float4 worldPosition;
+	
+	output float4 result;
+	
+	// Functions related to lighting
+	
+	// lightPosition, lightDirection, lightSize and lightColor are all parameters of the material
+#define OMNIDIRECTIONAL_LIGHT
+
+#ifdef DIRECTIONAL_LIGHT
+	// Light properties
+	parameter float4 lightDirection 
+	<
+		id: "lightDirection";
+	>;
+
+	float4 evaluateLitDiffuse(float4 position, float4 diffuseColor)
+	{
+		float dotProduct = dot( normal, lightDirection );
+		dotProduct = max( 0.0, dotProduct );
+		return dotProduct * diffuseColor;
+	}
+	
+	float4 evaluateLitPhong(float4 position, float4 surfaceNormal, float4 rayDirection, float4 diffuseColor, float4 specularColor)
+	{
+		float dotProduct = dot( normal, lightDirection );
+		dotProduct = max( 0.0, dotProduct );
+		
+		float dpHighlight = dot(rayDirection, lightDirection);
+		dpHighlight = max( 0.0, dpHighlight );
+		dpHighlight = pow( dpHighlight, shininess ) ;
+		return dpHighlight * specularColor + dotProduct * diffuseColor;
+	}
+#endif
+#ifdef OMNIDIRECTIONAL_LIGHT
+	// Light properties
+	parameter float4 lightPosition 
+	<
+		id: "lightPosition";
+	>;
+
+	float4 evaluateLitDiffuse(float4 position, float4 diffuseColor)
+	{
+		float4 direction = lightPosition - position;
+		direction = normalize(direction);
+		float dotProduct = dot( normal, direction );
+		dotProduct = max( 0.0, dotProduct );
+		return dotProduct * diffuseColor;
+	}
+	
+	float4 evaluateLitPhong(float4 position, float4 surfaceNormal, float4 rayDirection, float4 diffuseColor, float4 specularColor)
+	{
+		float4 direction = lightPosition - position;
+		direction = normalize(direction);
+		float dotProduct = dot( normal, direction );
+		dotProduct = max( 0.0, dotProduct );
+		
+		float dpHighlight = dot(rayDirection, direction);
+		dpHighlight = max( 0.0, dpHighlight );
+		dpHighlight = pow( dpHighlight, shininess ) ;
+		return dpHighlight * specularColor + dotProduct * diffuseColor;
+	}
+#endif
+	
+	void evaluateVertex()
+	{
+		texcoord = vertexTexcoord;
+		normal = vertexNormal;
+		worldPosition = vertexPosition;
+	}
+	
+	void evaluateFragment()
+	{
+		float4 viewDirection = worldPosition - cameraPosition;
+		viewDirection = normalize(viewDirection);
+		normal = normalize(normal);
+		
+		float4 radiance;
+		
+		// Copy to a local variable to enable it to be passed to a function
+		float4 surfacePosition = worldPosition; 
+		float4 surfaceNormal = normal; 
+		float4 diffuseColor = diffuse;
+		float4 specularColor = specular;
+		
+		float4 reflectedRay = (viewDirection - 2.0 * dot( viewDirection, normal ) * normal );
+				
+		float4 colorValue = evaluateLitPhong(surfacePosition, surfaceNormal, reflectedRay, diffuseColor, specularColor);
+		result = float4(colorValue.x, colorValue.y, colorValue.z, 1.0);
+	}
+}

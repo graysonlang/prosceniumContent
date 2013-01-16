@@ -1,0 +1,67 @@
+<languageVersion: 1.0;>
+material kernel simpleImageSampling
+<
+	namespace:	"Pixel Bender 3D";
+	vendor:		"Adobe";
+	version:	1;
+>
+{
+	parameter float4 cameraPosition					< id: "cameraPosition"; >;
+	parameter float time							< id: "time2"; >;
+	parameter float4 offsetUV						< id: "offsetUV"; >;
+
+	input vertex float4 vertexPosition				< id:"position"; >;
+	input vertex float4 vertexNormal				< id:"normal"; >;
+	input vertex float4 vertexTexcoord				< id:"texcoord"; >;
+	input image4 inputEnvImage						< id:"inputEnvImage"; >;
+
+	interpolated float4 texcoord;
+	interpolated float4 normal;
+	interpolated float4 worldPosition;
+
+	output float4 result; 
+
+	void evaluateVertex()
+	{
+		texcoord = vertexTexcoord;
+		normal = vertexNormal;
+		worldPosition = vertexPosition;
+	}
+	
+	void evaluateFragment()
+	{
+		float4 amplitude = float4(
+			0.125 * 0.15,
+			0.125 * 0.1,
+			0.125 * 0.08,
+			0.0) * .5;
+		
+		float4 wavenumber1 = float4(
+			512.0 * 0.25 * 0.9,
+			512.0 * -0.125 * 0.4, 
+			512.0 * 0.25 * 0.8,
+			512.0 * -0.1 
+			);
+
+		float4 tc = ( texcoord + offsetUV );
+
+		// Compute the function for this radius
+		float function = amplitude.x * cos(dot(tc.xy, wavenumber1.xy) - time) + amplitude.y * cos(dot(tc.xy, wavenumber1.zw) - time); 
+		function += amplitude.z * cos(dot(tc.xy, wavenumber1.zy) - time);
+
+		float4 viewDirection = worldPosition - cameraPosition;
+		viewDirection = normalize(viewDirection);
+		
+		float4 bumpNormal = float4( function, 0.0, 0.0, 0.0 ) + normal;
+		//bumpNormal = normalize( bumpNormal );
+
+		float dp = 4. * dot( viewDirection, bumpNormal );
+		float4 reflectedRay = ( viewDirection - dp * bumpNormal );
+				
+		float4 offsetHalf = float4( 0.5, 0.0, 0.5, 0.0 );
+		reflectedRay = reflectedRay * 0.5 + offsetHalf;	// Reparameterize -1 to 1 to 0 to 1 before sampling the texture
+		result = sample( inputEnvImage, reflectedRay.xz, PB3D_LINEAR ) * 0.8;		// Initialize with the reflection mapped component
+	
+		result.w = 1.0;
+	}
+}

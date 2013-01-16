@@ -1,0 +1,109 @@
+module_fragment_program simpleImageSampling
+
+    metadata
+        namespace const(string, "AIF Test")
+        vendor const(string, "Adobe")
+        version const(int, 1)
+    end_metadata
+    
+    transformations
+        SCF INTOSSA OPT(DCE* {APR DCE*}*)
+    end_transformations
+    
+    globals
+        global parameter float-4 cameraPosition
+            metadata
+                id const(string, "cameraPosition")
+            end_metadata
+        input image image-4 inputEnvImage
+        input image image-4 inputNormalImage
+        global parameter float-4 lightDiffuse
+            metadata
+                id const(string, "lightDiffuse")
+            end_metadata
+        global parameter float-4 lightSpecular
+            metadata
+                id const(string, "lightSpecular")
+            end_metadata
+        global parameter float shininess
+            metadata
+                id const(string, "shininess")
+            end_metadata
+        input vertex float-4 vertexNormal
+            metadata
+                id const(string, "normal")
+            end_metadata
+        input vertex float-4 vertexPosition
+            metadata
+                id const(string, "position")
+            end_metadata
+        input vertex float-4 vertexTexcoord
+            metadata
+                id const(string, "texcoord")
+            end_metadata
+        interpolated float-4 normal
+            metadata
+                id const(string, "_1_normal")
+            end_metadata
+        interpolated float-4 texcoord
+            metadata
+                id const(string, "_0_texcoord")
+            end_metadata
+        interpolated float-4 worldPosition
+            metadata
+                id const(string, "_2_worldPosition")
+            end_metadata
+        output fragment float-4 result
+    end_globals
+    
+    functions
+        external_function void evaluateFragment()
+            body
+                basic_block entry%A !! outlets(basic%A)
+                    viewDirection-0 = allocNonSSA type(float-4) : float-4
+                    lightDirection-0 = allocNonSSA type(float-4) : float-4
+                    offsetHalf-0 = allocNonSSA type(float-4) : float-4
+                    bumpNormal-0 = allocNonSSA type(float-4) : float-4
+                    dp-0 = allocNonSSA type(float) : float
+                    reflectedRay-0 = allocNonSSA type(float-4) : float-4
+                    dpHighlight-0 = allocNonSSA type(float) : float
+                    uv-0 = allocNonSSA type(float-2) : float-2
+                    jump block(basic%A) : void
+                end_basic_block
+                basic_block basic%A !! inlets(entry%A) outlets(exit%A)
+                    _LD_viewDirection-1 = sub worldPosition, cameraPosition : float-4
+                    _LD_viewDirection-2 = insertVE const(float, 0), _LD_viewDirection-1, const(int, 3) : float-4
+                    _LD_viewDirection-3 = normalize _LD_viewDirection-2 : float-4
+                    _LD_offsetHalf-1 = assign const(float-4, (0.5, 0.5, 0, 0)) : float-4
+                    _anonSwizzle%A-0 = swizzleRHS texcoord, const(int-2, (0, 1)) : float-2
+                    _LD_bumpNormal-1 = sample inputNormalImage, _anonSwizzle%A-0, const(_sample_option, linear mipdisable clamp 2D ) : float-4
+                    _subResult%B-0 = sub _LD_bumpNormal-1, _LD_offsetHalf-1 : float-4
+                    _LD_bumpNormal-2 = mul _subResult%B-0, const(float, 0.2) : float-4
+                    _LD_bumpNormal-3 = insertVE const(float, 1), _LD_bumpNormal-2, const(int, 2) : float-4
+                    _LD_bumpNormal-4 = insertVE const(float, 0), _LD_bumpNormal-3, const(int, 3) : float-4
+                    _LD_bumpNormal-5 = normalize _LD_bumpNormal-4 : float-4
+                    _dotResult%A-0 = dot _LD_viewDirection-3, _LD_bumpNormal-5 : float
+                    _LD_dp-1 = mul const(float, 2), _dotResult%A-0 : float
+                    _mulResult%C-0 = mul _LD_dp-1, _LD_bumpNormal-5 : float-4
+                    _LD_reflectedRay-1 = sub _LD_viewDirection-3, _mulResult%C-0 : float-4
+                    _mulResult%D-0 = mul _LD_reflectedRay-1, const(float, 0.5) : float-4
+                    _LD_reflectedRay-2 = add _mulResult%D-0, _LD_offsetHalf-1 : float-4
+                    _LD_reflectedRayElem%A-0 = extractVE _LD_reflectedRay-2, const(int, 0) : float
+                    _LD_reflectedRayElem%B-0 = extractVE _LD_reflectedRay-2, const(int, 1) : float
+                    _subResult%D-0 = sub const(float, 1), _LD_reflectedRayElem%B-0 : float
+                    _LD_uv-1 = makeFloatVector _LD_reflectedRayElem%A-0, _subResult%D-0 : float-2
+                    _sampleResult%B-0 = sample inputEnvImage, _LD_uv-1, const(_sample_option, linear mipdisable clamp 2D ) : float-4
+                    _LD_result-1 = mul _sampleResult%B-0, const(float, 0.75) : float-4
+                    _LD_result-2 = insertVE const(float, 1), _LD_result-1, const(int, 3) : float-4
+                    jump block(exit%A) : void
+                end_basic_block
+                basic_block exit%A !! inlets(basic%A)
+                    moveToNonSSA _LD_result-2, result : void
+                    ret : void
+                end_basic_block
+            end_body
+        end_external_function
+    end_functions
+    
+end_module_fragment_program
+

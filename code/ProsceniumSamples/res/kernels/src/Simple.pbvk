@@ -1,0 +1,18 @@
+<languageVersion: 1.0;>
+vertex kernel SimplestVertexKernel
+<
+	namespace:	"Pixel Bender 3D";
+	vendor:		"Adobe";
+	version:	1;
+>
+{
+	input vertex float4 vertexPosition				< id: "position"; >;
+	parameter float4x4 objectToClipSpaceTransform	< id: "mvpmatrix"; >;
+
+	output float4 vertexClipPosition;
+
+	void evaluateVertex()
+	{
+		vertexClipPosition = vertexPosition * objectToClipSpaceTransform;
+	}
+}

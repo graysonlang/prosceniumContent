@@ -1,0 +1,31 @@
+newmtl Pupil
+	Ns 35
+	d 1
+	Ka 0 0 0
+	Kd 0 0 0
+	Ks .9 .9 .9
+	Ke 0 0 0
+
+newmtl Sclera
+	Ns 19
+	d 1
+	Ka 1 1 1
+	Kd 1 1 1
+	Ks .8 .8 .8
+	Ke 0 0 0
+
+newmtl Body
+	Ns 25
+	d 1
+	Ka 1 .9686 .1333
+	Kd 1 .9686 .1333
+	Ks .45 .45 .45
+	Ke 0 0 0
+
+newmtl Bill
+	Ns 35
+	d 1
+	Ka 1 0.6118 0
+	Kd 1 0.6118 0
+	Ks 0.8 0.8 0.8
+	Ke 0 0 0

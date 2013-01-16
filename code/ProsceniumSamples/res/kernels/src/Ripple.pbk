@@ -1,0 +1,122 @@
+<languageVersion : 1.0;>
+
+kernel GravityWave
+<
+	namespace:		"Pixel Bender";
+    vendor:			"Adobe";
+    version:		1;
+    description:	"A rippling effect, animatable using the time parameter";
+>
+{
+    input image4 src;
+    output pixel4 dst;
+    
+	parameter float2 center
+    <
+		minValue:		float2( 0.0, 0.0 );
+		maxValue:		float2( 8192.0, 8192.0 );
+		defaultValue:	float2( 256.0, 256.0 );
+	>;
+    
+	parameter float time
+	<
+		minValue:		0.1;
+		maxValue:		100.0;
+		defaultValue:	5.0;
+	>;
+
+	parameter float rippleTime
+	<
+		minValue:		0.0;
+		maxValue:		100.0;
+		defaultValue:	0.0;
+	>;
+
+	void evaluatePixel()
+	{
+        float4 color = sampleNearest( src, outCoord() );
+	
+        float r;
+        float A			= 10.0;
+        float B			= 0.1 * 0.5;
+        float C			= 0.2 * 0.5;
+        float D			= 0.17 * 0.5;
+		float PI		= 3.141592;
+        
+        float wavelength = 8.0;
+        float groupVelocity = 3.0;
+        float waveVelocity = groupVelocity * 4.0;
+        float frequency = waveVelocity / wavelength;
+        float wavenumber = 2.0 * PI / wavelength;
+        float omega = 0.1 * frequency * 2.0 * PI;
+        float sigma; // The width of the envelope function
+        
+        float2 wavenumber1 = float2(wavenumber * 0.9, -wavenumber * 0.4) * 0.33;
+        float2 wavenumber2 = float2(wavenumber * 0.8, -wavenumber * 0.1) * 0.33;
+        float2 wavenumber3 = float2(wavenumber * 0.85, -wavenumber * 0.255) * 0.33;
+        float omega1 = omega * 0.2;
+        float omega2 = omega * 0.25;
+	
+	 	// Calculate distance between center point and current pixel
+		// position and use this to perform falloff on amount
+        
+        float function, phase1, phase2; // phase 1 is the carrier wave, phase 2 is the group velocity
+        float amplitude, rCenter;
+        float xCoord, yCoord;
+        
+        float2 position;
+        
+        float epsilon = 1e-2;
+        
+        position = outCoord() + float2(0.0, 0.0);
+        rCenter = groupVelocity * rippleTime;
+        sigma = rCenter * 0.05 + 1.0;
+       
+        /// Compute the function for this radius
+		r = distance( position, center );
+		phase1 = wavenumber * r - omega * rippleTime;
+         amplitude = exp(-(r - rCenter) * (r - rCenter) / (sigma * sigma)) / (r + 10.0);
+		function = A * amplitude * cos(phase1); 
+ 		phase2 = dot(position, wavenumber1) - omega1 * time;
+		function += B * cos(phase2); 
+		phase2 = dot(position, wavenumber2) - omega2 * time;
+		function += C * cos(phase2); 
+ 		phase2 = dot(position, wavenumber3) - omega2 * time;
+		function += D * cos(phase2); 
+        float functionC = function;
+        
+        position = outCoord() + float2(epsilon, 0.0);
+        /// Compute the function for this radius
+		r = distance( position, center );
+		phase1 = wavenumber * r - omega * rippleTime;
+        amplitude = exp(-(r - rCenter) * (r - rCenter) / (sigma * sigma)) / (r + 10.0);;
+		function = A * amplitude * cos(phase1); 
+  		phase2 = dot(position, wavenumber1) - omega1 * time;
+		function += B * cos(phase2); 
+ 		phase2 = dot(position, wavenumber2) - omega2 * time;
+		function += C * cos(phase2); 
+ 		phase2 = dot(position, wavenumber3) - omega2 * time;
+		function += D * cos(phase2); 
+        float functionPX = function;
+
+        position = outCoord() + float2(0.0, epsilon);
+        /// Compute the function for this radius
+   		r = distance( position, center );
+        phase1 = wavenumber * r - omega * rippleTime;
+        amplitude = exp(-(r - rCenter) * (r - rCenter) / (sigma * sigma)) / (r + 10.0);;
+		function = A * amplitude * cos(phase1); 
+  		phase2 = dot(position, wavenumber1) - omega1 * time;
+		function += B * cos(phase2); 
+ 		phase2 = dot(position, wavenumber2) - omega2 * time;
+		function += C * cos(phase2); 
+  		phase2 = dot(position, wavenumber3) - omega2 * time;
+		function += D * cos(phase2); 
+        float functionPY = function;
+        
+        float4 normal = float4(functionC - functionPX, functionC - functionPY, 1.0 * epsilon, 0.0);
+        normal = normalize(normal);
+ 
+		// Add offset vector to current pixel position vector and sample that pixel in this position.
+		dst = float4( 0.5 + 0.5 * normal.x, 0.5 + 0.5 * normal.y, 0.5 * normal.z, 1.0 );
+	}
+}

@@ -1,0 +1,20 @@
+newmtl frond
+	Ns 100
+	d 1
+	Ka .5 .5 .5
+	Kd .5 .5 .5
+	Ks 0 0 0
+	Ke 0 0 0
+	map_Ka -clamp on frondDiffuse.png
+	map_Kd -clamp on frondDiffuse.png
+	map_d -clamp on frondAlpha.png
+
+newmtl trunk
+	Ns 100
+	d 1
+	Ka .5 .5 .5
+	Kd .5 .5 .5
+	Ks 0 0 0
+	Ke 0 0 0
+	map_Ka bark.png
+	map_Kd bark.png

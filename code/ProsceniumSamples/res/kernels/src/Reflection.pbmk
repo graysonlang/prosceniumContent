@@ -1,0 +1,77 @@
+<languageVersion : 1.0;>
+material kernel simpleImageSampling
+<
+	namespace : "AIF Test";
+	vendor : "Adobe";
+	version : 1;
+>
+{
+	parameter float4 cameraPosition
+	<
+		id: "cameraPosition";
+	>;
+	parameter float4 lightDiffuse
+	<
+		id: "lightDiffuse";
+	>;
+	parameter float4 lightSpecular
+	<
+		id: "lightSpecular";
+	>;
+	parameter float shininess
+	<
+		id: "shininess";
+	>;
+	
+	input vertex float4 vertexPosition < id:"position"; >; 
+	input vertex float4 vertexTexcoord < id:"texcoord"; >;
+	input vertex float4 vertexNormal < id:"normal"; >;
+	input image4 inputNormalImage < id:"normalTexture"; >;
+	input image4 inputEnvImage < id:"envTexture"; >;
+
+	interpolated float4 texcoord;
+	interpolated float4 normal;
+	interpolated float4 worldPosition;
+
+	output float4 result;
+	
+	void evaluateVertex()
+	{
+		texcoord = vertexTexcoord;
+		normal = vertexNormal;
+		worldPosition = vertexPosition;
+	}
+	
+	void evaluateFragment()
+	{
+		float4 viewDirection = worldPosition - cameraPosition;
+		viewDirection.w = 0.0;
+		viewDirection = normalize(viewDirection);
+		
+//		float4 lightDirection = float4( 0.0, .6647, 0.7625, 0.0 );
+		float4 lightDirection = float4( -0.57735, 0.57735, 0.67735, 0.0 );
+		lightDirection = normalize(lightDirection);
+		
+		float4 offsetHalf = float4(0.5, 0.5, 0.0, 0.0);
+		
+		float4 bumpNormal = sample( inputNormalImage,texcoord.xy, PB3D_LINEAR );
+ 		bumpNormal = ( bumpNormal - offsetHalf ) * 0.2;
+		bumpNormal.z = 1.0;
+		bumpNormal.w = 0.0;
+		bumpNormal = normalize(bumpNormal);
+
+		float dp = 2.0 * dot( viewDirection, bumpNormal );
+		float4 reflectedRay = (viewDirection - dp * bumpNormal);
+		
+		float dpHighlight = dot(reflectedRay, lightDirection);
+		dpHighlight = max( 0.0, dpHighlight );
+		dpHighlight = pow( dpHighlight, 30.0 );
+		
+		reflectedRay = reflectedRay * 0.5 + offsetHalf;
+		float2 uv = float2(reflectedRay.x, 1.0 - reflectedRay.y);
+				
+		result = sample( inputEnvImage, uv, PB3D_LINEAR ) * 0.75;
+//		result = result + float4(dpHighlight, dpHighlight, dpHighlight, 0.0);
+		result.w = 1.0;
+	}
+}

@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="utf-8"?>
+<COLLADA xmlns="http://www.collada.org/2005/11/COLLADASchema" version="1.4.1">
+  <asset>
+    <created>2010-05-18T22:38:52</created>
+    <modified>2010-05-18T22:38:52</modified>
+    <unit name="inch" meter="0.0254"/>
+    <up_axis>Z_UP</up_axis>
+  </asset>
+  <library_effects>
+    <effect id="ColorEffectR255G255B255">
+      <profile_COMMON>
+        <technique sid="common">
+          <phong>
+            <ambient>
+              <color>1 1 1 1</color>
+            </ambient>
+            <diffuse>
+              <color>1 1 1 1</color>
+            </diffuse>
+            <specular>
+              <color>1 1 1 1</color>
+            </specular>
+            <shininess>
+              <float>10</float>
+            </shininess>
+            <reflective>
+              <color>0 0 0 1</color>
+            </reflective>
+            <transparent>
+              <color>1 1 1 1</color>
+            </transparent>
+            <transparency>
+              <float>1</float>
+            </transparency>
+          </phong>
+        </technique>
+      </profile_COMMON>
+    </effect>
+  </library_effects>
+  <library_materials>
+    <material id="ColorEffectR255G255B255-material" name="ColorEffectR255G255B255-material">
+      <instance_effect url="#ColorEffectR255G255B255"/>
+    </material>
+  </library_materials>
+  <library_geometries>
+    <geometry id="geom-Box01" name="Box01">
+      <mesh>
+        <source id="geom-Box01-positions">
+          <float_array id="geom-Box01-positions-array" count="24">-5 -5 0 5 -5 0 -5 5 0 5 5 0 -5 -5 10 5 -5 10 -5 5 10 5 5 10</float_array>
+          <technique_common>
+            <accessor source="#geom-Box01-positions-array" count="8" stride="3">
+              <param name="X" type="float"/>
+              <param name="Y" type="float"/>
+              <param name="Z" type="float"/>
+            </accessor>
+          </technique_common>
+        </source>
+        <source id="geom-Box01-normals">
+          <float_array id="geom-Box01-normals-array" count="72">0 0 -1 0 0 -1 0 0 -1 0 0 -1 0 0 1 0 0 1 0 0 1 0 0 1 0 -1 0 0 -1 0 0 -1 0 0 -1 0 1 0 0 1 0 0 1 0 0 1 0 0 0 1 0 0 1 0 0 1 0 0 1 0 -1 0 0 -1 0 0 -1 0 0 -1 0 0</float_array>
+          <technique_common>
+            <accessor source="#geom-Box01-normals-array" count="24" stride="3">
+              <param name="X" type="float"/>
+              <param name="Y" type="float"/>
+              <param name="Z" type="float"/>
+            </accessor>
+          </technique_common>
+        </source>
+        <source id="geom-Box01-map1">
+          <float_array id="geom-Box01-map1-array" count="36">0 0 0 1 0 0 0 1 0 1 1 0 0 0 0 1 0 0 0 1 0 1 1 0 0 0 0 1 0 0 0 1 0 1 1 0</float_array>
+          <technique_common>
+            <accessor source="#geom-Box01-map1-array" count="12" stride="3">
+              <param name="S" type="float"/>
+              <param name="T" type="float"/>
+              <param name="P" type="float"/>
+            </accessor>
+          </technique_common>
+        </source>
+        <vertices id="geom-Box01-vertices">
+          <input semantic="POSITION" source="#geom-Box01-positions"/>
+        </vertices>
+        <triangles material="ColorMaterial" count="12">
+          <input semantic="VERTEX" source="#geom-Box01-vertices" offset="0"/>
+          <input semantic="NORMAL" source="#geom-Box01-normals" offset="1"/>
+          <input semantic="TEXCOORD" source="#geom-Box01-map1" offset="2" set="1"/>
+          <p>0 0 9 2 1 11 3 2 10 3 2 10 1 3 8 0 0 9 4 4 8 5 5 9 7 6 11 7 6 11 6 7 10 4 4 8 0 8 4 1 9 5 5 10 7 5 10 7 4 11 6 0 8 4 1 12 0 3 13 1 7 14 3 7 14 3 5 15 2 1 12 0 3 16 4 2 17 5 6 18 7 6 18 7 7 19 6 3 16 4 2 20 0 0 21 1 4 22 3 4 22 3 6 23 2 2 20 0</p>
+        </triangles>
+      </mesh>
+      <extra>
+        <technique profile="OpenCOLLADA3dsMax">
+          <box>
+            <generateuvs>1</generateuvs>
+            <height>10</height>
+            <heightsegments>1</heightsegments>
+            <length>10</length>
+            <lengthsegments>1</lengthsegments>
+            <width>10</width>
+            <widthsegments>1</widthsegments>
+          </box>
+        </technique>
+      </extra>
+    </geometry>
+  </library_geometries>
+  <library_lights>
+    <light id="EnvironmentAmbientLight" name="EnvironmentAmbientLight">
+      <technique_common>
+        <ambient>
+          <color>0 0 0</color>
+        </ambient>
+      </technique_common>
+    </light>
+  </library_lights>
+  <library_visual_scenes>
+    <visual_scene id="MaxScene">
+      <node name="EnvironmentAmbientLight">
+        <instance_light url="#EnvironmentAmbientLight"/>
+      </node>
+      <node id="node-Box01" name="Box01">
+        <translate sid="translation">0.6689903 0 0</translate>
+        <instance_geometry url="#geom-Box01">
+          <bind_material>
+            <technique_common>
+              <instance_material symbol="ColorMaterial" target="#ColorEffectR255G255B255-material"/>
+            </technique_common>
+          </bind_material>
+        </instance_geometry>
+      </node>
+    </visual_scene>
+  </library_visual_scenes>
+  <library_animations>
+    <animation>
+      <source id="node-Box01_translation.X-input">
+        <float_array id="node-Box01_translation.X-input-array" count="19">0 0.2333333 0.3666667 0.4666667 0.6666667 0.8666667 0.9333334 1.2 1.3 1.366667 1.433333 1.733333 2.066667 2.266667 2.5 2.6 2.666667 2.7 2.966667</float_array>
+        <technique_common>
+          <accessor source="#node-Box01_translation.X-input-array" count="19" stride="1">
+            <param name="TIME" type="float"/>
+          </accessor>
+        </technique_common>
+      </source>
+      <source id="node-Box01_translation.X-output">
+        <float_array id="node-Box01_translation.X-output-array" count="19">0.6689903 9.969227 14.38328 15.8885 16.223 13.0453 10.36934 2.006969 -0.2963828 -1.672473 -3.846689 -15.38676 -20.57143 -15.72126 -7.693379 1.505227 5.686412 8.36237 12.37631</float_array>
+        <technique_common>
+          <accessor source="#node-Box01_translation.X-output-array" count="19" stride="1">
+            <param name="X" type="float"/>
+          </accessor>
+        </technique_common>
+      </source>
+      <source id="node-Box01_translation.X-intangent">
+        <float_array id="node-Box01_translation.X-intangent-array" count="38">-0.3329306 0.6689903 0.1556333 7.206143 0.3222667 13.37143 0.4333667 15.53578 0.6000667 16.69639 0.8000667 15.3148 0.9111333 11.22145 1.1112 4.253972 1.2667 0.4228381 1.344467 -1.081347 1.411133 -3.099048 1.633433 -12.62818 1.955667 -21.6064 2.200067 -17.64849 2.4223 -13.49849 2.5667 -0.9731284 2.644467 4.034175 2.6889 7.551723 2.877867 16.18821</float_array>
+        <technique_common>
+          <accessor source="#node-Box01_translation.X-intangent-array" count="19" stride="2">
+            <param name="X" type="float"/>
+            <param name="Y" type="float"/>
+          </accessor>
+        </technique_common>
+      </source>
+      <source id="node-Box01_translation.X-outtangent">
+        <float_array id="node-Box01_translation.X-outtangent-array" count="38">0.0777 4.099864 0.2777333 11.54813 0.3999667 15.14216 0.5332667 16.59395 0.7332667 15.7496 0.8888667 12.2888 1.022133 6.960905 1.2333 1.164344 1.3222 -0.7758633 1.388867 -2.263599 1.533233 -7.211076 1.844333 -18.45185 2.133267 -19.95045 2.344367 -13.47281 2.5333 -5.205476 2.6222 3.157464 2.677767 6.512531 2.7888 14.84756 3.299597 12.37631</float_array>
+        <technique_common>
+          <accessor source="#node-Box01_translation.X-outtangent-array" count="19" stride="2">
+            <param name="X" type="float"/>
+            <param name="Y" type="float"/>
+          </accessor>
+        </technique_common>
+      </source>
+      <source id="node-Box01_translation.X-interpolation">
+        <Name_array id="node-Box01_translation.X-interpolation-array" count="19">BEZIER BEZIER BEZIER BEZIER BEZIER BEZIER BEZIER BEZIER BEZIER BEZIER BEZIER BEZIER BEZIER BEZIER BEZIER BEZIER BEZIER BEZIER BEZIER</Name_array>
+        <technique_common>
+          <accessor source="#node-Box01_translation.X-interpolation-array" count="19" stride="1">
+            <param name="INTERPOLATION" type="name"/>
+          </accessor>
+        </technique_common>
+      </source>
+      <sampler id="node-Box01_translation.X-sampler">
+        <input semantic="INPUT" source="#node-Box01_translation.X-input"/>
+        <input semantic="OUTPUT" source="#node-Box01_translation.X-output"/>
+        <input semantic="IN_TANGENT" source="#node-Box01_translation.X-intangent"/>
+        <input semantic="OUT_TANGENT" source="#node-Box01_translation.X-outtangent"/>
+        <input semantic="INTERPOLATION" source="#node-Box01_translation.X-interpolation"/>
+      </sampler>
+      <channel source="#node-Box01_translation.X-sampler" target="node-Box01/translation.X"/>
+    </animation>
+  </library_animations>
+  <scene>
+    <instance_visual_scene url="#MaxScene"/>
+  </scene>
+</COLLADA>
